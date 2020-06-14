@@ -1,9 +1,11 @@
 const express = require('express');
 const gravatar = require('gravatar'); //https://github.com/emerleite/node-gravatar
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const router = express.Router();
 const User = require('../../models/User');
+const keys = require('../../config/keys');
 
 // @route   POST api/users/register
 // @desc    Register user 
@@ -62,11 +64,36 @@ router.post("/login", (req, res) => {
           if (!isMatch) {
             return res.status(400).json({password: "Password incorrect"});
           }
-          return res.json({msg: "Success"});
+          //Payload
+          const payload = {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar
+          };
+          //Sign token using payload
+          jwt.sign(
+            payload, 
+            keys.secretOrKey,
+            {expiresIn: 3600},
+            (err, token) => {
+              return res.json({
+                token: 'Bearer ' + token
+              })
+            }
+          );
         })
         .catch(err => console.log(err))
     })
     .catch(err => console.log(err))
+})
+
+// @route   GET api/users/current
+// @desc    Return current user
+// @access  Private
+router.get('/current',
+  passport.authenticate('jwt', {session: false}),
+  (req, res) => {
+    return res.json({msg: 'Success'});
 })
 
 module.exports = router;
