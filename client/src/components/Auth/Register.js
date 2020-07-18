@@ -1,6 +1,8 @@
-import React, { Component } from 'react'
-import axios from 'axios';
+import React, { Component } from 'react';
 import classnames from 'classnames';
+import {connect} from 'react-redux';
+import { registerUser } from '../../actions/authActions';
+import { withRouter } from 'react-router-dom';
 
 class Register extends Component {
   constructor() {
@@ -30,11 +32,13 @@ class Register extends Component {
       password: this.state.password,
       password2: this.state.password2
     };
+    this.props.registerUser(newUser, this.props.history);
+  }
 
-    axios
-      .post('/api/users/register', newUser)
-      .then(res => console.log(res.data))
-      .catch(err => this.setState({errors: err.response.data}))
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.errors) {
+      this.setState({errors: nextProps.errors});
+    }
   }
 
   render() {
@@ -72,7 +76,7 @@ class Register extends Component {
                   value={this.state.email}
                   onChange={this.onChange}
                   />
-                  <small classNameName="form-text text-muted">This site uses Gravatar so if you want a profile image, use a Gravatar email</small>
+                  <small className="form-text text-muted">This site uses Gravatar so if you want a profile image, use a Gravatar email</small>
                   {errors.email && (
                       <div className="invalid-feedback">{errors.email}</div>
                     )}
@@ -115,4 +119,9 @@ class Register extends Component {
   }
 }
 
-export default Register;
+
+const mapStateToProps = state => ({
+  errors: state.errors
+});
+
+export default connect(mapStateToProps, { registerUser })(withRouter(Register));
