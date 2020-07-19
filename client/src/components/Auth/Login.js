@@ -1,6 +1,7 @@
-import React, { Component } from 'react'
-import axios from 'axios';
+import React, { Component } from 'react';
 import classnames from 'classnames';
+import {connect} from 'react-redux';
+import { loginUser } from '../../actions/authActions';
 
 class Login extends Component {
   constructor() {
@@ -27,14 +28,26 @@ class Login extends Component {
       password: this.state.password
     };
 
-    axios
-      .post('/api/users/login', user)
-      .then(res => console.log(res.data))
-      .catch(err => this.setState({errors: err.response.data}))
+    this.props.loginUser(user);
+  }
+
+  componentDidMount() {
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push('/dashboard');
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.auth.isAuthenticated) {
+      this.props.history.push('/dashboard');
+    }
+    if (nextProps.errors) {
+      this.setState({errors: nextProps.errors});
+    }
   }
 
   render() {
-    const {errors} = this.state;
+    const {errors} = this.props;
 
     return (
       <div className="login">
@@ -82,4 +95,9 @@ class Login extends Component {
   }
 }
 
-export default Login;
+const mapStateToProps = state => ({
+  auth: state.auth,
+  errors: state.errors
+});
+
+export default connect(mapStateToProps, { loginUser })(Login);
